@@ -142,6 +142,9 @@ def on_ui_settings():
 
 def statemanager_option_button_component(py_click, js_click, **kwargs):
     class_list = "sd-webui-statemanager-option-button " + kwargs.pop('elem_classes', '')
+    # Remove 'label' from kwargs if it exists
+    if 'label' in kwargs:
+        kwargs.pop('label')
     button = gr.Button(elem_classes=class_list, **kwargs)
 
     if str(gr.__version__[0]) == "3":
@@ -153,7 +156,20 @@ def statemanager_option_button_component(py_click, js_click, **kwargs):
 
 class StateManagerOptionButton(shared.OptionInfo):
     def __init__(self, text, py_click, js_click, **kwargs):
-        super().__init__(str(text).strip(), label='', component=lambda **lkwargs: statemanager_option_button_component(py_click, js_click, **{**kwargs, **lkwargs}))
+        # Use the text parameter as the button's text instead of a label
+        button_kwargs = {**kwargs}
+        if 'label' in button_kwargs:
+            button_kwargs.pop('label')
+        super().__init__(
+            str(text).strip(), 
+            label=None,  # Set label to None since we don't need it for buttons
+            component=lambda **lkwargs: statemanager_option_button_component(
+                py_click, 
+                js_click, 
+                text=text,  # Pass text directly to the button
+                **{**button_kwargs, **lkwargs}
+            )
+        )
         self.do_not_save = True
 
 shared.options_templates.update(
