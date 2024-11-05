@@ -142,10 +142,11 @@ def on_ui_settings():
 
 def statemanager_option_button_component(py_click, js_click, **kwargs):
     class_list = "sd-webui-statemanager-option-button " + kwargs.pop('elem_classes', '')
-    # Remove 'label' from kwargs if it exists
+    # Remove 'label' and 'text' from kwargs, use text as the button's label
     if 'label' in kwargs:
         kwargs.pop('label')
-    button = gr.Button(elem_classes=class_list, **kwargs)
+    text = kwargs.pop('text') if 'text' in kwargs else ""
+    button = gr.Button(text, elem_classes=class_list, **kwargs)
 
     if str(gr.__version__[0]) == "3":
         button.click(fn=py_click, _js=js_click)
@@ -156,17 +157,19 @@ def statemanager_option_button_component(py_click, js_click, **kwargs):
 
 class StateManagerOptionButton(shared.OptionInfo):
     def __init__(self, text, py_click, js_click, **kwargs):
-        # Use the text parameter as the button's text instead of a label
+        # Remove label and text from button_kwargs to avoid duplication
         button_kwargs = {**kwargs}
         if 'label' in button_kwargs:
             button_kwargs.pop('label')
+        if 'text' in button_kwargs:
+            button_kwargs.pop('text')
         super().__init__(
             str(text).strip(), 
             label=None,  # Set label to None since we don't need it for buttons
             component=lambda **lkwargs: statemanager_option_button_component(
                 py_click, 
                 js_click, 
-                text=text,  # Pass text directly to the button
+                text=text,  # This will be extracted and used as the first argument
                 **{**button_kwargs, **lkwargs}
             )
         )
